@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>催化反思 AI 教學助理｜範例</title>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --panel:#ffffff;
+    --line:#dde3ee;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --accent:#3559c7;
+    --accent-soft:#eef2ff;
+    --student:#eaf4ff;
+    --ai:#f7f7fb;
+    --danger:#b42318;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  .app{
+    min-height:100vh;
+    display:grid;
+    grid-template-columns:280px 1fr;
+  }
+  aside{
+    background:#172554;
+    color:#fff;
+    padding:28px 22px;
+  }
+  .brand{
+    font-size:21px;
+    font-weight:800;
+    line-height:1.4;
+    margin-bottom:8px;
+  }
+  .subtitle{
+    font-size:13px;
+    color:#c7d2fe;
+    line-height:1.65;
+    margin-bottom:28px;
+  }
+  .step{
+    border-left:3px solid rgba(255,255,255,.22);
+    padding:8px 0 8px 14px;
+    margin:10px 0;
+    font-size:14px;
+    color:#cbd5e1;
+  }
+  .step.active{
+    border-left-color:#fff;
+    color:#fff;
+    font-weight:700;
+  }
+  .aside-note{
+    margin-top:28px;
+    padding:14px;
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:12px;
+    font-size:12px;
+    line-height:1.7;
+    color:#dbeafe;
+    background:rgba(255,255,255,.05);
+  }
+
+  main{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  header{
+    height:74px;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 28px;
+  }
+  header h1{
+    margin:0;
+    font-size:18px;
+  }
+  .badge{
+    background:var(--accent-soft);
+    color:var(--accent);
+    padding:7px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+  }
+
+  .workspace{
+    flex:1;
+    padding:22px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 320px;
+    gap:18px;
+    min-height:0;
+  }
+  .chat-card, .info-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:0 8px 24px rgba(31,41,55,.05);
+  }
+  .chat-card{
+    display:flex;
+    flex-direction:column;
+    min-height:calc(100vh - 118px);
+    overflow:hidden;
+  }
+  .chat-toolbar{
+    padding:15px 18px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .chat-toolbar strong{font-size:14px}
+  .chat-toolbar span{font-size:12px;color:var(--muted)}
+
+  .messages{
+    flex:1;
+    overflow:auto;
+    padding:20px;
+  }
+  .msg{
+    display:flex;
+    gap:10px;
+    margin:14px 0;
+  }
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;flex:0 0 auto;
+  }
+  .msg.ai .avatar{background:#e0e7ff;color:#3730a3}
+  .msg.user{justify-content:flex-end}
+  .msg.user .avatar{background:#dbeafe;color:#1d4ed8;order:2}
+  .bubble{
+    max-width:78%;
+    padding:12px 14px;
+    border-radius:14px;
+    line-height:1.75;
+    font-size:14px;
+    white-space:pre-wrap;
+  }
+  .msg.ai .bubble{background:var(--ai);border:1px solid #ececf3}
+  .msg.user .bubble{background:var(--student);border:1px solid #d8eaff}
+  .rolecue{
+    font-size:12px;
+    color:#7c3aed;
+    font-weight:700;
+    margin-bottom:5px;
+  }
+
+  .composer{
+    border-top:1px solid var(--line);
+    padding:14px;
+    background:#fcfcfe;
+  }
+  textarea{
+    width:100%;
+    min-height:84px;
+    resize:vertical;
+    border:1px solid #cfd6e3;
+    border-radius:12px;
+    padding:12px;
+    font:inherit;
+    outline:none;
+  }
+  textarea:focus{border-color:#8da2f3;box-shadow:0 0 0 3px rgba(53,89,199,.10)}
+  .composer-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:9px;
+    gap:10px;
+  }
+  .hint{font-size:12px;color:var(--muted)}
+  button{
+    border:0;
+    background:var(--accent);
+    color:#fff;
+    padding:10px 16px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button.secondary{
+    background:#eef2f7;
+    color:#334155;
+  }
+
+  .sidecol{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .info-card{padding:18px}
+  .info-card h3{
+    margin:0 0 10px;
+    font-size:15px;
+  }
+  .info-card p, .info-card li{
+    color:#4b5563;
+    font-size:13px;
+    line-height:1.7;
+  }
+  .status{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .status div{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+  }
+  .status b{
+    display:block;
+    font-size:11px;color:var(--muted);margin-bottom:4px;
+  }
+  .status span{
+    font-size:13px;font-weight:700;
+  }
+  .small{
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.65;
+  }
+  .warning{
+    color:var(--danger);
+    font-weight:700;
+  }
+
+  @media (max-width:980px){
+    .app{grid-template-columns:1fr}
+    aside{display:none}
+    .workspace{grid-template-columns:1fr}
+    .sidecol{display:none}
+    .chat-card{min-height:calc(100vh - 112px)}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">催化反思 AI 教學助理</div>
+    <div class="subtitle">輔導原理與實務｜國小學校輔導案例</div>
+
+    <div class="step active">1. 當下問題處理</div>
+    <div class="step">2. 感官覺察與資訊蒐集</div>
+    <div class="step">3. 即時判斷</div>
+    <div class="step">4. 微觀介入與角色扮演</div>
+    <div class="step">5. 雙環／三環反思</div>
+    <div class="step">6. 長期輔導與個案概念化</div>
+
+    <div class="aside-note">
+      本系統不直接提供標準答案。AI會依師資生的回答，逐步揭露資訊、扮演案童與同儕，並透過情境後果催化反思。
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <h1>案例一：午餐前的小衝突</h1>
+      <div class="badge">範例模式｜尚未串接 API</div>
+    </header>
+
+    <section class="workspace">
+      <div class="chat-card">
+        <div class="chat-toolbar">
+          <strong>反思對話</strong>
+          <span>學生代碼：S001｜第 1 次練習</span>
+        </div>
+
+        <div class="messages" id="messages">
+          <div class="msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">你是國小五年級導師。第四節課快結束，距離下課約 5 分鐘。教室後方突然傳來椅子碰撞聲。你看見小宇站在座位旁，臉很紅，瞪著阿哲說：「你很煩耶！我就叫你不要碰我的東西！」阿哲也站起來回嘴。旁邊幾個同學開始轉頭看，有人竊竊私語，也有人笑。
+
+小宇突然把作業簿重重摔在桌上，說：「你再碰一次試試看！」
+
+現在你就是這個班的老師。你怎麼看現在的情況？你準備怎麼處理？</div>
+          </div>
+        </div>
+
+        <div class="composer">
+          <textarea id="input" placeholder="請輸入你的判斷、問題，或直接說你準備怎麼做……"></textarea>
+          <div class="composer-row">
+            <div class="hint">你也可以先向案童、同學或現場提出問題。</div>
+            <button id="sendBtn">送出</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidecol">
+        <div class="info-card">
+          <h3>本輪狀態</h3>
+          <div class="status">
+            <div><b>階段</b><span>當下處理</span></div>
+            <div><b>輪次</b><span id="round">1</span></div>
+            <div><b>模式</b><span>催化反思</span></div>
+            <div><b>答案提示</b><span>關閉</span></div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>教學設計原則</h3>
+          <ul>
+            <li>不先給標準答案</li>
+            <li>資訊採漸進揭露</li>
+            <li>要求具體說明「怎麼做」</li>
+            <li>以案童／同儕反應呈現介入後果</li>
+            <li>進一步追問背後假設與輔導理念</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <h3>技術說明</h3>
+          <p class="small">這是前端介面範例，現在用預設規則模擬回應。正式版可將「送出」按鈕改為呼叫 OpenAI API，並把每輪學生回答與 AI 回覆寫入資料庫。</p>
+          <p class="small"><span class="warning">不要把 API Key 放在這個 HTML 裡。</span>正式版應由後端伺服器保管金鑰。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const messages = document.getElementById('messages');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const roundEl = document.getElementById('round');
+let round = 1;
+
+function addMessage(text, who='ai', cue=''){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + (who === 'user' ? 'user' : 'ai');
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = who === 'user' ? '你' : 'AI';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  if(cue && who === 'ai'){
+    const cueDiv = document.createElement('div');
+    cueDiv.className = 'rolecue';
+    cueDiv.textContent = cue;
+    bubble.appendChild(cueDiv);
+  }
+
+  bubble.appendChild(document.createTextNode(text));
+
+  if(who === 'user'){
+    wrap.appendChild(bubble);
+    wrap.appendChild(avatar);
+  } else {
+    wrap.appendChild(avatar);
+    wrap.appendChild(bubble);
+  }
+  messages.appendChild(wrap);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function mockAI(text){
+  const t = text.trim();
+
+  if(/關係|朋友|人際|同學/.test(t)){
+    return {
+      cue:'資訊揭露',
+      text:'你過去的觀察是：小宇在班上有兩、三位比較常一起玩的同學，但人際關係不太穩定。有些孩子知道他容易生氣，偶爾會故意逗他；也有孩子開始覺得他很麻煩。\n\n這些資料會如何影響你此時此刻的處理？你還缺少什麼資訊？'
+    };
+  }
+
+  if(/坐下|等下課|五分鐘|5分鐘/.test(t)){
+    return {
+      cue:'情境後果',
+      text:'你這麼做後，小宇沒有立刻坐下，仍緊抓著作業簿。阿哲小聲說：「老師，他剛剛明明有推我。」旁邊另一位同學接著說：「對啊，他剛才差點打到阿哲。」\n\n小宇立刻提高音量：「我才沒有！是他們一直弄我！你們全部都幫他！」\n\n現在距離下課約 4 分鐘。你接下來具體要怎麼做？你站在哪裡？先對誰說什麼？'
+    };
+  }
+
+  if(/安撫|同理|溝通/.test(t) && !/怎麼|說/.test(t)){
+    return {
+      cue:'微觀引導',
+      text:'你提到要「安撫／同理／溝通」。請把它變成現場可觀察的行動：你現在走到哪裡？先對誰說話？第一句話是什麼？其他學生此刻怎麼辦？'
+    };
+  }
+
+  if(/為什麼|原因|理由/.test(t)){
+    return {
+      cue:'雙環反思',
+      text:'我想再往下一層追問：你為什麼會選擇這個處理方式？你當時對小宇、阿哲或全班抱持什麼假設？這個做法反映了你什麼樣的輔導理念？'
+    };
+  }
+
+  return {
+    cue:'催化追問',
+    text:'我先不判斷你的做法對不對。根據你剛才的回答，你目前最重要的判斷依據是什麼？其中哪些是你直接觀察到的事實，哪些是當事人的主觀感受，哪些又是你的推論？接下來你要具體做什麼？'
+  };
+}
+
+function send(){
+  const text = input.value.trim();
+  if(!text) return;
+  addMessage(text,'user');
+  input.value='';
+  round += 1;
+  roundEl.textContent = round;
+
+  setTimeout(()=>{
+    const r = mockAI(text);
+    addMessage(r.text,'ai',r.cue);
+  }, 300);
+}
+
+sendBtn.addEventListener('click', send);
+input.addEventListener('keydown', e=>{
+  if((e.ctrlKey || e.metaKey) && e.key === 'Enter') send();
+});
+</script>
+</body>
+</html>
